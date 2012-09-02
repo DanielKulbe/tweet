@@ -1,5 +1,14 @@
+
+//----------------------------------------------------------------------------------------------------------
 // jquery.tweet.js - See http://tweet.seaofclouds.com/ or https://github.com/seaofclouds/tweet for more info
 // Copyright (c) 2008-2011 Todd Matthews & Steve Purcell
+//
+// customizion model: https://github.com/seaofclouds/tweet/issues/228
+//
+// 08/31/2012 done for Drupal Tweet!-Module by Daniel Kulbe (http://goo.gl/L4wtW)
+//
+//-----------------------------------------------------------------------------------------------------------
+
 (function (factory) {
   if (typeof define === 'function' && define.amd)
     define(['jquery'], factory); // AMD support for RequireJS etc.
@@ -8,33 +17,35 @@
 }(function ($) {
   $.fn.tweet = function(o){
     var s = $.extend({
-      username: null,                           // [string or array] required unless using the 'query' option; one or more twitter screen names (use 'list' option for multiple names, where possible)
-      list: null,                               // [string]   optional name of list belonging to username
-      favorites: false,                         // [boolean]  display the user's favorites instead of his tweets
-      query: null,                              // [string]   optional search query (see also: http://search.twitter.com/operators)
-      avatar_size: null,                        // [integer]  height and width of avatar if displayed (48px max)
-      count: 3,                                 // [integer]  how many tweets to display?
-      fetch: null,                              // [integer]  how many tweets to fetch via the API (set this higher than 'count' if using the 'filter' option)
-      page: 1,                                  // [integer]  which page of results to fetch (if count != fetch, you'll get unexpected results)
-      retweets: true,                           // [boolean]  whether to fetch (official) retweets (not supported in all display modes)
-      intro_text: null,                         // [string]   do you want text BEFORE your your tweets?
-      outro_text: null,                         // [string]   do you want text AFTER your tweets?
-      join_text:  null,                         // [string]   optional text in between date and tweet, try setting to "auto"
-      auto_join_text_default: " I said, ",      // [string]   auto text for non verb: "I said" bullocks
-      auto_join_text_ed: " I ",                 // [string]   auto text for past tense: "I" surfed
-      auto_join_text_ing: " I am ",             // [string]   auto tense for present tense: "I was" surfing
-      auto_join_text_reply: " I replied to ",   // [string]   auto tense for replies: "I replied to" @someone "with"
-      auto_join_text_url: " I was looking at ", // [string]   auto tense for urls: "I was looking at" http:...
-      loading_text: null,                       // [string]   optional loading text, displayed while tweets load
-      refresh_interval: null,                   // [integer]  optional number of seconds after which to reload tweets
-      twitter_url: "twitter.com",               // [string]   custom twitter url, if any (apigee, etc.)
-      twitter_api_url: "api.twitter.com",       // [string]   custom twitter api url, if any (apigee, etc.)
-      twitter_search_url: "search.twitter.com", // [string]   custom twitter search url, if any (apigee, etc.)
-      template: "{avatar}{time}{join} {text}",  // [string or function] template used to construct each tweet <li> - see code for available vars
-      comparator: function(tweet1, tweet2) {    // [function] comparator used to sort tweets (see Array.sort)
+      username: null,                           											// [string or array] required unless using the 'query' option; one or more twitter screen names (use 'list' option for multiple names, where possible)
+      relative_time: true,                      											// [boolean]  wether to show a relative time
+      format_time: "{tweet_mon}/{tweet_day}/{tweet_year} - {tweet_hour}:{tweet_minutes}",	// [string]   time format when display an absolute time, we use the international time format symbols
+      list: null,                               											// [string]   optional name of list belonging to username
+      favorites: false,                         											// [boolean]  display the user's favorites instead of his tweets
+      query: null,                              											// [string]   optional search query (see also: http://search.twitter.com/operators)
+      avatar_size: null,                        											// [integer]  height and width of avatar if displayed (48px max)
+      count: 3,                                 											// [integer]  how many tweets to display?
+      fetch: null,                              											// [integer]  how many tweets to fetch via the API (set this higher than 'count' if using the 'filter' option)
+      page: 1,                                  											// [integer]  which page of results to fetch (if count != fetch, you'll get unexpected results)
+      retweets: true,                           											// [boolean]  whether to fetch (official) retweets (not supported in all display modes)
+      intro_text: null,                         											// [string]   do you want text BEFORE your your tweets?
+      outro_text: null,                         											// [string]   do you want text AFTER your tweets?
+      join_text:  null,                         											// [string]   optional text in between date and tweet, try setting to "auto"
+      auto_join_text_default: " I said, ",      											// [string]   auto text for non verb: "I said" bullocks
+      auto_join_text_ed: " I ",                 											// [string]   auto text for past tense: "I" surfed
+      auto_join_text_ing: " I am ",             											// [string]   auto tense for present tense: "I was" surfing
+      auto_join_text_reply: " I replied to ",   											// [string]   auto tense for replies: "I replied to" @someone "with"
+      auto_join_text_url: " I was looking at ", 											// [string]   auto tense for urls: "I was looking at" http:...
+      loading_text: null,                       											// [string]   optional loading text, displayed while tweets load
+      refresh_interval: null,                   											// [integer]  optional number of seconds after which to reload tweets
+      twitter_url: "twitter.com",               											// [string]   custom twitter url, if any (apigee, etc.)
+      twitter_api_url: "api.twitter.com",       											// [string]   custom twitter api url, if any (apigee, etc.)
+      twitter_search_url: "search.twitter.com", 											// [string]   custom twitter search url, if any (apigee, etc.)
+      template: "{avatar}{time}{join}{text}",   											// [string or function] template used to construct each tweet <li> - see code for available vars
+      comparator: function(tweet1, tweet2) {    											// [function] comparator used to sort tweets (see Array.sort)
         return tweet2["tweet_time"] - tweet1["tweet_time"];
       },
-      filter: function(tweet) {                 // [function] whether or not to include a particular tweet (be sure to also set 'fetch')
+      filter: function(tweet) {                 											// [function] whether or not to include a particular tweet (be sure to also set 'fetch')
         return true;
       }
       // You can attach callbacks to the following events using jQuery's standard .bind() mechanism:
@@ -127,6 +138,70 @@
       if ( time_ago.seconds > 1 )  return 'about ' + time_ago.seconds + ' seconds ago';
       return 'just now';
     }
+	
+	// Get 'human' time in fragments such as "Wed. Mar. 19, 2012 - 2:15:32 PM"
+
+    function human_time(date,date_part) {
+	  var timestamp = date;
+
+	  var month=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+	  var day=["Sun","Mon","Tue","Wed","Thur","Fri","Sat"];
+
+	  function timey_whimey(number){
+		  number = (number > 12) ? number - 12 : number; 
+		  return number;
+	  }
+	  function ending(hour){
+		  hour = (hour > 12) ? 'PM' : 'AM';
+		  return hour;
+	  }
+
+	  date = new Date(timestamp),
+	  datevalues = [
+		  date.getFullYear(),
+		  month[date.getMonth()],
+		  date.getMonth(),
+		  day[date.getUTCDay()],
+		  date.getDate(),
+		  timey_whimey(date.getHours()),
+		  date.getMinutes(),
+		  date.getSeconds(),
+		  ending(date.getHours())
+		  ];  
+
+
+	   var array_part = '';
+
+	  switch (date_part){
+		  case 'Y': array_part = '0';
+			  break;
+		  case 'M': array_part = '1';
+			  break;
+		  case 'm': array_part = '2';
+			  break;  
+		  case 'DY': array_part = '3';
+			  break;
+		  case 'D': array_part = '4';
+			  break;
+		  case 'H': array_part = '5';
+			  break;
+		  case 'MS': array_part = '6';
+			  break;
+		  case 'S': array_part = '7';
+			  break;
+		  case 'E': array_part = '8';
+			  break;
+	  }       
+
+	  if (array_part == '') {
+		  var full_date ='';
+		  full_date = datevalues[2] + '. '  + datevalues[1] + '. ' + datevalues[4] + ', ' + datevalues[0] + ' - ' + datevalues[5] + ':' + datevalues[6] + ':' + datevalues[7] + ' ' + datevalues[8];
+		  return full_date;
+	  } else {
+		  return datevalues[array_part];
+	  }
+    }
 
     function build_auto_join_text(text) {
       if (text.match(/^(@([A-Za-z0-9-_]+)) .*/i)) {
@@ -192,6 +267,16 @@
       o.favorite_url = o.twitter_base+"intent/favorite?tweet_id="+o.tweet_id;
       o.retweeted_screen_name = o.retweet && item.retweeted_status.user.screen_name;
       o.tweet_relative_time = format_relative_time(extract_relative_time(o.tweet_time));
+      o.tweet_year = human_time(item.created_at,'Y');
+      o.tweet_month = human_time(item.created_at,'M');
+      o.tweet_mon = human_time(item.created_at,'m');
+      o.tweet_day = human_time(item.created_at,'D');
+      o.tweet_weekday = human_time(item.created_at,'DY');
+      o.tweet_hour = human_time(item.created_at,'H');
+      o.tweet_minutes = human_time(item.created_at,'MS');
+      o.tweet_seconds = human_time(item.created_at,'S');
+      o.tweet_time_ending = human_time(item.created_at, 'E');
+      o.tweet_human_time = human_time(o.tweet_time);
       o.entities = item.entities ? (item.entities.urls || []).concat(item.entities.media || []) : [];
       o.tweet_raw_text = o.retweet ? ('RT @'+o.retweeted_screen_name+' '+item.retweeted_status.text) : item.text; // avoid '...' in long retweets
       o.tweet_text = $([linkURLs(o.tweet_raw_text, o.entities)]).linkUser().linkHash()[0];
@@ -208,7 +293,7 @@
       o.join = s.join_text ? t('<span class="tweet_join">{join_text}</span>', o) : '';
       o.avatar = o.avatar_size ?
         t('<a class="tweet_avatar" href="{avatar_profile_url}"><img src="{avatar_url}" height="{avatar_size}" width="{avatar_size}" alt="{avatar_screen_name}\'s avatar" title="{avatar_screen_name}\'s avatar" border="0"/></a>', o) : '';
-      o.time = t('<span class="tweet_time"><a href="{tweet_url}" title="view tweet on twitter">{tweet_relative_time}</a></span>', o);
+      o.time = t('<span class="tweet_time"><a href="{tweet_url}" title="view tweet on twitter">' + (s.relative_time ? '{tweet_relative_time}' : s.format_time) + '</a></span>', o);
       o.text = t('<span class="tweet_text">{tweet_text_fancy}</span>', o);
       o.retweeted_text = t('<span class="tweet_text">{retweeted_tweet_text}</span>', o);
       o.reply_action = t('<a class="tweet_action tweet_reply" href="{reply_url}">reply</a>', o);
